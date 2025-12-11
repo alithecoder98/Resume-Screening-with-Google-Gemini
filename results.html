@@ -1,35 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Screening Results</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <meta charset="utf-8" />
+  <title>AI Screening Results</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body{background:#f3f6f9;font-family:"Segoe UI",sans-serif}
+    .container-large{max-width:1200px;margin:36px auto}
+    .card-box{background:#fff;padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(20,30,60,0.06)}
+    .header{color:#213e6f;font-weight:700}
+    .chip{background:#eef4fb;color:#244a86;padding:6px 10px;border-radius:999px;margin:4px;display:inline-block}
+    .score-badge{background:#244a86;color:#fff;padding:6px 10px;border-radius:8px}
+    .chart-card{padding:12px;border-radius:10px;background:#fff;box-shadow:0 3px 12px rgba(20,30,60,0.04)}
+  </style>
 </head>
-<body class="bg-light">
-    <div class="container mt-5">
-        <h2 class="text-center">🏆 Top Matching Resumes</h2>
-
-        {% if resumes %}
-            {% for resume in resumes %}
-            <div class="card mb-3 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Rank {{ resume.rank }}</h5>
-                    <p><strong>Similarity Score:</strong> {{ resume.total_similarity }}%</p>
-                    <p><strong>Skills:</strong> {{ resume.skills | join(', ') }}</p>
-                    <p><strong>Achievements:</strong></p>
-                    <p>{{ resume.achievements }}</p>
-                    <p><strong>Snippet:</strong> {{ resume.content[:250] }}...</p>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p class="text-center text-danger">No results available. Please upload resumes first.</p>
-        {% endif %}
-
-        <div class="text-center">
-            <a href="/" class="btn btn-secondary mt-3">🔙 Go Back</a>
+<body>
+  <div class="container-large">
+    <div class="card-box mb-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="header">AI Screening Results</h2>
+          <p class="text-muted">Rankings and skill coverage extracted from the job description and candidate resumes.</p>
         </div>
+        <div><a class="btn btn-outline-primary" href="/">⬅ Upload More</a></div>
+      </div>
+      <div class="mt-3">
+        <h6>Required Skills (extracted)</h6>
+        <div>
+          {% if required_skills %}
+            {% for s in required_skills %}<span class="chip">{{ s }}</span>{% endfor %}
+          {% else %}<span class="text-muted">No required skills detected.</span>{% endif %}
+        </div>
+      </div>
     </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-7">
+        <div class="card-box">
+          <h5>Top Ranked Candidates</h5>
+          <table class="table">
+            <thead class="table-light"><tr><th>Rank</th><th>Candidate</th><th>Score</th><th>Skill Match</th><th>Certs</th><th>Exp (yrs)</th></tr></thead>
+            <tbody>
+              {% for r in resumes %}
+                <tr>
+                  <td>#{{ r.rank }}</td>
+                  <td><strong>{{ r.name }}</strong><div class="text-muted small">{{ r.city }}</div></td>
+                  <td><span class="score-badge">{{ r.score }}</span></td>
+                  <td>{{ r.skill_match_pct }}%</td>
+                  <td>{{ r.cert_match_pct }}%</td>
+                  <td>{{ r.experience_years }}</td>
+                </tr>
+              {% endfor %}
+              {% if resumes|length==0 %}<tr><td colspan="6" class="text-muted">No results yet.</td></tr>{% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="card-box chart-card mb-3">
+          <h6>All Candidates — Score Comparison</h6>
+          <canvas id="scoreChart" height="180"></canvas>
+        </div>
+        <div class="card-box chart-card">
+          <h6>All Candidates — Skill Match %</h6>
+          <canvas id="skillChart" height="140"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-box mb-4">
+      <h5>Candidate Skill Coverage vs Required Skills</h5>
+      <div class="row g-3 mt-2">
+        {% for r in resumes %}
+          <div class="col-12">
+            <div style="border:1px solid #eef2f8;padding:12px;border-radius:8px;background:#fff">
+              <div class="d-flex justify-content-between">
+                <div><strong>#{{ r.rank }} — {{ r.name }}</strong><div class="text-muted small">{{ r.email }} {{ r.phone }}</div></div>
+                <div class="small text-muted">Skill match: <strong>{{ r.skill_match_pct }}%</strong></div>
+              </div>
+              <div class="mt-2">
+                <div class="mb-2 small text-muted">Matched required skills:</div>
+                {% if r.matched_skills %}{% for ms in r.matched_skills %}<span class="chip">{{ ms }}</span>{% endfor %}{% else %}<div class="text-muted small">No required skills matched.</div>{% endif %}
+              </div>
+              <div class="mt-3">
+                <div class="progress" style="height:18px">
+                  <div class="progress-bar" role="progressbar" style="width: {{ r.skill_match_pct }}%; background:#244a86">{{ r.skill_match_pct }}%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card-box">
+      <h5>All Candidates Details</h5>
+      <div style="max-height:420px;overflow:auto;margin-top:12px">
+        <table class="table table-hover">
+          <thead class="table-light"><tr><th>#</th><th>Name</th><th>City</th><th>Email</th><th>Phone</th><th>Skills(top)</th><th>Exp</th><th>Certs</th></tr></thead>
+          <tbody>
+            {% for r in resumes %}
+              <tr>
+                <td>{{ r.rank }}</td>
+                <td>{{ r.name }}</td>
+                <td>{{ r.city }}</td>
+                <td>{{ r.email }}</td>
+                <td>{{ r.phone }}</td>
+                <td>{% for s in r.skills[:6] %}<span class="badge bg-light text-dark me-1">{{ s }}</span>{% endfor %}</td>
+                <td>{{ r.experience_years }}</td>
+                <td>{% for c in r.certifications %}<div class="small text-muted">{{ c }}</div>{% endfor %}</td>
+              </tr>
+            {% endfor %}
+            {% if resumes|length==0 %}<tr><td colspan="8" class="text-muted">No data.</td></tr>{% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  const resumes = {{ resumes|tojson }};
+  const labels = resumes.map(r => r.name || ("Candidate "+r.rank));
+  const scores = resumes.map(r => r.score || 0);
+  const skillMatch = resumes.map(r => r.skill_match_pct || 0);
+
+  // Score chart
+  const ctx = document.getElementById('scoreChart').getContext('2d');
+  new Chart(ctx, { type:'bar', data:{ labels:labels, datasets:[{label:'Score', data:scores, backgroundColor:'#244a86'}] }, options:{ responsive:true, scales:{ y:{beginAtZero:true}} } });
+
+  // Skill chart
+  const ctx2 = document.getElementById('skillChart').getContext('2d');
+  new Chart(ctx2, { type:'bar', data:{ labels:labels, datasets:[{label:'Skill Match %', data:skillMatch, backgroundColor:'#2b6ea3'}] }, options:{ responsive:true, scales:{ y:{beginAtZero:true, max:100}} } });
+
+</script>
 </body>
 </html>
