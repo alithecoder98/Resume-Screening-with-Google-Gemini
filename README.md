@@ -1,4 +1,4 @@
-# Resume Screening Application
+<img width="1279" height="496" alt="Screenshot 2025-12-11 133712" src="https://github.com/user-attachments/assets/9908d7d4-7ccb-4f16-9840-8ee6e0a6eb57" /># Resume Screening Application
 
 ## 📌 Overview
 This project is a **Flask-based web application** that leverages **Google Gemini AI** to analyze and rank resumes based on their similarity to a given job description. The application extracts text from resumes, identifies key skills, experience, and certifications, and ranks candidates using **FAISS for vector-based similarity matching**.
@@ -62,7 +62,9 @@ The application will be available at **http://127.0.0.1:5000/**.
 
 ## 📊 Running Streamlit Dashboard
 To view results interactively:
-```bash
+```bash<img width="1279" height="855" alt="Screenshot 2025-12-11 133738" src="https://github.com/user-attachments/assets/ea4290cc-ad15-41c4-9187-a5fad774105c" />
+<img width="1269" height="846" alt="Screenshot 2025-12-11 133723" src="https://github.com/user-attachments/assets/1f636858-72e0-46ca-af2b-5aea2453dd66" />
+
 streamlit run results.py
 ```
 
@@ -77,3 +79,6 @@ streamlit run results.py
 Feel free to contribute by submitting PRs or reporting issues!
 
 
+<img width="1279" height="496" alt="Screenshot 2025-12-11 133712" src="https://github.com/user-attachments/assets/0a257e2d-33f2-4ef0-9780-195ef62535cb" />
+![Uploading Screenshot 2025-12-11 133723.png…]()
+<img width="1279" height="855" alt="Screenshot 2025-12-11 133738" src="https://github.com/user-attachments/assets/89e958e6-ef9b-4cd7-b8d9-592dc243ef45" />
